@@ -1,0 +1,5 @@
+pymsteams
+azure.cli.core
+azure-cli
+msrestazure
+packaging

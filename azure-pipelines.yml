@@ -1,0 +1,33 @@
+trigger:
+- none
+
+schedules:
+- cron: "0 07 * * mon-fri"
+  displayName: Workweek daily crontab
+  branches:
+    include: [ main ] 
+  always: "true"
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+- group: plrosok-cloudinfra
+
+steps:
+- script: |
+    set +x
+    echo "----------------------------------------------------------------------------------------------"
+    echo "Installing job prereqs..."
+    sudo apt-get update && sudo apt-get -y install python3-pip curl
+    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+    pip3 install -r requirements.txt
+    echo "----------------------------------------------------------------------------------------------"
+    echo "Logging to Azure..."
+    az login --service-principal --username  $SP_CLIENT_ID --password $ENV_SP_CLIENT_SECRET --tenant $SP_TENANT_ID
+    python3 azure_list_2teams.py --azure_subs $AZURE_SUBS --teams_webhook=$TEAMS_WEBHOOK
+
+  env:
+    ENV_SP_CLIENT_SECRET: $(SP_CLIENT_SECRET)
+
+  displayName: 'Query Azure resources and send listing to the MS Teams channel'
